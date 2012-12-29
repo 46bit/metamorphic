@@ -1,0 +1,42 @@
+#!/usr/bin/env node
+
+var _ = require("underscore"),
+    jsdom = require("jsdom")
+
+var node_to_tree = function (node, parent_level) {
+  var tree_node = {
+    name: node.nodeName,
+    attributes: [],
+    children: [],
+    level: _.isUndefined(parent_level) ? 0 : parent_level + 1
+  }
+
+  if (node.attributes) {
+    for (var i = 0, n = node.attributes.length; i < n; i++) {
+      tree_node.attributes[node.attributes[i].nodeName] = node.attributes[i].nodeValue
+    }
+  }
+
+  if (node.childNodes) {
+    for (var j = 0, m = node.childNodes.length; j < m; j++) {
+      tree_node.children.push(node_to_tree(
+        node.childNodes[j],
+        tree_node.level
+      ))
+    }
+  }
+
+  return tree_node
+}
+
+var tree_to_html = function (tree) {
+
+}
+
+jsdom.env(
+  "https://46bit.com",
+  [],
+  function (err, window) {
+    console.log(node_to_tree(window.document.getElementsByTagName("body")[0]))
+  }
+)
