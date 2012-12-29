@@ -5,8 +5,10 @@ var _ = require("underscore"),
 
 var node_to_tree = function (node, parent_level) {
   var tree_node = {
-    name: node.nodeName,
+    name: node.nodeName.toLowerCase(),
+    tagged: node.nodeName[0] != "#",
     attributes: [],
+    value: node.nodeValue,
     children: [],
     level: _.isUndefined(parent_level) ? 0 : parent_level + 1
   }
@@ -29,14 +31,28 @@ var node_to_tree = function (node, parent_level) {
   return tree_node
 }
 
-var tree_to_html = function (tree) {
+var tree_to_html = function (tree_node) {
+  var line = Array(tree_node.level).join("  ")
 
+  if (tree_node.value) {
+    line += tree_node.value
+  } else {
+    if (tree_node.tagged) line += "<" + tree_node.name + ">"
+    for (var i = 0; i < tree_node.children.length; i++) {
+      line += tree_to_html(tree_node.children[i])
+    }
+    if (tree_node.tagged) line += "</" + tree_node.name + ">"
+  }
+
+  return line
 }
 
 jsdom.env(
   "https://46bit.com",
   [],
   function (err, window) {
-    console.log(node_to_tree(window.document.getElementsByTagName("body")[0]))
+    var page_tree = node_to_tree(window.document)
+    var page_html = tree_to_html(page_tree)
+    console.log(page_html)
   }
 )
