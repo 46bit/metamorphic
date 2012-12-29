@@ -5,3 +5,4 @@ Icon?
 *.gem
 .sass-cache/*
 tmp/*
+node_modules/*
