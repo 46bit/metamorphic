@@ -10,12 +10,15 @@ var node_to_tree = function (node, parent_level) {
     attributes: [],
     value: node.nodeValue,
     children: [],
-    level: _.isUndefined(parent_level) ? 0 : parent_level + 1
+    level: (_.isUndefined(parent_level) ? 0 : parent_level + 1)
   }
 
   if (node.attributes) {
     for (var i = 0, n = node.attributes.length; i < n; i++) {
-      tree_node.attributes[node.attributes[i].nodeName] = node.attributes[i].nodeValue
+      tree_node.attributes.push([
+        node.attributes[i].nodeName,
+        node.attributes[i].nodeValue
+      ])
     }
   }
 
@@ -32,14 +35,24 @@ var node_to_tree = function (node, parent_level) {
 }
 
 var tree_to_html = function (tree_node) {
+  if (_.isUndefined(tree_node)) {
+    return
+  }
+
   var line = Array(tree_node.level).join("  ")
 
   if (tree_node.value) {
     line += tree_node.value
   } else {
-    if (tree_node.tagged) line += "<" + tree_node.name + ">"
-    for (var i = 0; i < tree_node.children.length; i++) {
-      line += tree_to_html(tree_node.children[i])
+    if (tree_node.tagged) {
+      line += "<" + tree_node.name
+      for (var i = 0; i < tree_node.attributes.length; i++) {
+        line += " " + tree_node.attributes[i][0] + "=\"" + tree_node.attributes[i][1] + "\""
+      }
+      line += ">"
+    }
+    for (var j = 0; j < tree_node.children.length; j++) {
+      line += tree_to_html(tree_node.children[j])
     }
     if (tree_node.tagged) line += "</" + tree_node.name + ">"
   }
