@@ -1,21 +1,24 @@
 #!/usr/bin/env node
 
+// Convert your HTML documents to Jade templating syntax with a simple
+// `./bin/metamorphic jade http://example.com/your/html/page.html`
+
 var _ = require("underscore"),
     jsdom = require("jsdom"),
     metamorphic = require("../lib/metamorphic")
 
+var source_url = process.argv[3],
+    convert_to = process.argv[2]
+
+convert_to = convert_to.charAt(0).toUpperCase() + convert_to.slice(1).toLowerCase()
+
 jsdom.env(
-  process.argv[2] || "https://46bit.com", // backup URL is for debugging, removal is TODO
+  source_url,
   [],
   function (err, window) {
-    var html = new metamorphic.HTML()
+    var html = new metamorphic.Html()
+    var converter = new metamorphic[convert_to]
     var page_tree = html.read(window.document)
-
-    var page_html = html.write(page_tree)
-    console.log(page_html)
-
-    var jade = new metamorphic.Jade()
-    var page_jade = jade.write(page_tree)
-    console.log(page_jade)
+    console.log(converter.write(page_tree))
   }
 )
