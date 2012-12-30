@@ -95,7 +95,7 @@ var tree_to_jade = function (tree_node) {
 }
 
 jsdom.env(
-  "https://46bit.com",
+  process.argv[2] || "https://46bit.com", // backup URL is for debugging, removal is TODO
   [],
   function (err, window) {
     var page_tree = node_to_tree(window.document)
