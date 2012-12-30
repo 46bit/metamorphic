@@ -1,34 +1,30 @@
 #!/usr/bin/env node
 
 var _ = require("underscore"),
-    jsdom = require("jsdom")
+    jsdom = require("jsdom"),
+    metamorphic = require("../lib/metamorphic")
 
-var node_to_tree = function (node, parent_level) {
-  var tree_node = {
-    name: node.nodeName.toLowerCase(),
-    tagged: node.nodeName[0] != "#",
-    attributes: [],
-    value: node.nodeValue,
-    children: [],
-    level: (_.isUndefined(parent_level) ? 0 : parent_level + 1)
+var node_to_tree = function (node, parent_tree_node) {
+  if (_.isUndefined(parent_tree_node)) {
+    var tree_node = new metamorphic.TreeNode()
+  } else {
+    var tree_node = parent_tree_node.add_child()
   }
 
+  tree_node.options.name = node.nodeName.toLowerCase()
+  tree_node.options.tagged = node.nodeName[0] != "#"
+  tree_node.options.value = node.nodeValue
+
   if (node.attributes) {
-    for (var i = 0, n = node.attributes.length; i < n; i++) {
-      tree_node.attributes.push([
-        node.attributes[i].nodeName,
-        node.attributes[i].nodeValue
-      ])
-    }
+    _.map(node.attributes, function (attribute) {
+      tree_node.attributes[attribute.nodeName] = attribute.nodeValue
+    })
   }
 
   if (node.childNodes) {
-    for (var j = 0, m = node.childNodes.length; j < m; j++) {
-      tree_node.children.push(node_to_tree(
-        node.childNodes[j],
-        tree_node.level
-      ))
-    }
+    _.map(node.childNodes, function (child_node) {
+      node_to_tree(child_node, tree_node)
+    })
   }
 
   return tree_node
@@ -39,22 +35,60 @@ var tree_to_html = function (tree_node) {
     return
   }
 
-  var line = Array(tree_node.level).join("  ")
+  var line = Array(tree_node.depth()).join("  ")
 
-  if (tree_node.value) {
-    line += tree_node.value
+  if (tree_node.options.value) {
+    line += tree_node.options.value
   } else {
-    if (tree_node.tagged) {
-      line += "<" + tree_node.name
-      for (var i = 0; i < tree_node.attributes.length; i++) {
-        line += " " + tree_node.attributes[i][0] + "=\"" + tree_node.attributes[i][1] + "\""
-      }
+    if (tree_node.options.tagged) {
+      line += "<" + tree_node.options.name
+      _.map(tree_node.attributes, function (value, key) {
+        line += " " + key + "=\"" + value + "\""
+      })
       line += ">"
     }
     for (var j = 0; j < tree_node.children.length; j++) {
       line += tree_to_html(tree_node.children[j])
     }
-    if (tree_node.tagged) line += "</" + tree_node.name + ">"
+    if (tree_node.tagged) line += "</" + tree_node.options.name + ">"
+  }
+
+  return line
+}
+
+var tree_to_jade = function (tree_node) {
+  if (_.isUndefined(tree_node)) return ""
+
+  var line = (tree_node.depth() > 0 ? "\n" : "") + Array(tree_node.depth()).join("  ")
+
+  if (tree_node.options.value) {
+    if (tree_node.options.value.match(/^\s+$/)) return ""
+
+    var trimmed_value = tree_node.options.value.replace(/^\s\s*/, "").replace(/\s\s*$/, "")
+    var value_lines = trimmed_value.split("\n")
+    var start_line = line
+    line = ""
+    _.map(value_lines, function (value_line) {
+      line += start_line + "| " + value_line.replace(/^\s\s*/, "").replace(/\s\s*$/, "")
+    })
+  } else {
+    if (tree_node.options.tagged) {
+      line += tree_node.options.name
+      if (!_.isEmpty(tree_node.attributes)) {
+        line += "("
+        var line_attributes = []
+        _.map(tree_node.attributes, function (value, key) {
+          line_attributes.push(key + "=\"" + value + "\"")
+        })
+        line += line_attributes.join(", ") + ")"
+      }
+    } else {
+      line += "!!!"
+    }
+
+    _.map(tree_node.children, function (child_tree_node) {
+      line += tree_to_jade(child_tree_node)
+    })
   }
 
   return line
@@ -65,7 +99,11 @@ jsdom.env(
   [],
   function (err, window) {
     var page_tree = node_to_tree(window.document)
-    var page_html = tree_to_html(page_tree)
-    console.log(page_html)
+
+    //  var page_html = tree_to_html(page_tree)
+    //  console.log(page_html)
+
+    var page_jade = tree_to_jade(page_tree)
+    console.log(page_jade)
   }
 )
