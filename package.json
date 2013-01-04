@@ -1,8 +1,8 @@
 {
   "name": "metamorphic",
-  "version": "0.0.1",
-  "scripts": {
-    "start": "./bin/metamorphic"
+  "version": "0.0.2",
+  "bin": {
+    "metamorphic": "bin/metamorphic"
   },
   "dependencies": {
     "underscore": "1.4.3",
