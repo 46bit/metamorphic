@@ -1,24 +1,57 @@
 #!/usr/bin/env node
 
-// Convert your HTML documents to Jade templating syntax with a simple
-// `./bin/metamorphic jade http://example.com/your/html/page.html`
-
-var _ = require("underscore"),
+var version = "0.0.3",
+    program = require("commander"),
+    _ = require("underscore"),
     jsdom = require("jsdom"),
+    colorize = require("colorize"),
     metamorphic = require("../lib/metamorphic")
 
-var source_url = process.argv[3],
-    convert_to = process.argv[2]
+// Build a DOM from the HTML file, and send to be converted
+var language_action = function (file, options) {
+  var language_name = this["language_name"]
+  jsdom.env(file, [], convert_dom_to_template.bind({
+    "language_name": language_name,
+    "file": file
+  }))
+}
 
-convert_to = convert_to.charAt(0).toUpperCase() + convert_to.slice(1).toLowerCase()
+// Arranges DOM conversion to template
+var convert_dom_to_template = function (err, window) {
+  var language_name = this["language_name"],
+      file = this["file"]
 
-jsdom.env(
-  source_url,
-  [],
-  function (err, window) {
-    var html = new metamorphic.Html()
-    var converter = new metamorphic[convert_to]
-    var page_tree = html.read(window.document)
-    console.log(converter.write(page_tree))
+  // If JSDOM had an error loading the file, tell the user.
+  if (err) {
+    colorize.console.log("#red[File '" + file + "' caused an error. Check it's a valid HTML file.]")
+    process.exit(1)
   }
-)
+
+  var language = metamorphic.get_language(language_name)
+  if (!language) {
+    colorize.console.log("#red[Language '" + language_name + "' is not supported.]")
+    process.exit(1)
+  }
+
+  var html = new metamorphic.Languages.Html()
+  var page_tree = html.read(window.document)
+
+  var converter = new language()
+  var output = converter.write(page_tree)
+
+  console.log(output)
+}
+
+// Since it's crazy to break functionality this early, we'll stick to
+// `metamorphic haml|jade|slim file.html` to call for now.
+var language_names = metamorphic.language_names()
+_.each(language_names, function (language_name) {
+  program
+    .command(language_name.toLowerCase() + " <file.html>")
+    .description("convert HTML file into " + language_name)
+    .action(language_action.bind({"language_name": language_name}))
+})
+
+program
+  .version(version)
+  .parse(process.argv)
