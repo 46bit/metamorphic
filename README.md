@@ -9,7 +9,7 @@ Metamorphic is written using Node.js and distributed as an NPM package. Once you
 ## Usage
 To convert a HTML file into [HAML](http://haml.info):
 
-`metamorphic **haml** index.html`
+`metamorphic haml index.html`
 
 Metamorphic supports several templating languages:
 
