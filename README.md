@@ -9,13 +9,14 @@ Metamorphic is written using Node.js and distributed as an NPM package. Once you
 ## Usage
 To convert a HTML file into [HAML](http://haml.info):
 
-`metamorphic **haml** index.html`
+`metamorphic haml index.html`
 
 Metamorphic supports several templating languages:
 
-* [HAML](http://haml.info)
-* [Jade](http://jade-lang.com)
-* [Slim](http://slim-lang.com)
+* [HAML](http://haml.info) as `metamorphic haml <file>`
+* [Jade](http://jade-lang.com) as `metamorphic jade <file>`
+* [Slim](http://slim-lang.com) as `metamorphic slim <file>`
+* [Compojure](http://slim-lang.com) as `metamorphic compojure <file>`
 
 ## Contribute
 Metamorphic was built by [Michael Mokrysz](https://46bit.com) at the very end of 2012, and is openly licensed under two-clause BSD.
