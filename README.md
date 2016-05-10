@@ -16,7 +16,7 @@ Metamorphic supports several templating languages:
 * [HAML](http://haml.info) as `metamorphic haml <file>`
 * [Jade](http://jade-lang.com) as `metamorphic jade <file>`
 * [Slim](http://slim-lang.com) as `metamorphic slim <file>`
-* [Compojure](http://slim-lang.com) as `metamorphic compojure <file>`
+* [Compojure](https://github.com/weavejester/compojure) as `metamorphic compojure <file>`
 
 ## Contribute
 Metamorphic was built by [Michael Mokrysz](https://46bit.com) at the very end of 2012, and is openly licensed under two-clause BSD.
